@@ -46,6 +46,7 @@ class BLEScannerService : Service() {
     private val leScanCallback: ScanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             super.onScanResult(callbackType, result)
+
             if(result.device.name != null){
                 println(result.device.name)
                 println(result.rssi)
