@@ -19,20 +19,29 @@ class BLEScannerService : Service() {
     private lateinit var bluetoothLeScanner: BluetoothLeScanner
     private var scanning = false
     private val handler = Handler()
+
     // Stops scanning after 10 seconds.
     private val SCAN_PERIOD: Long = 1000000
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val notification = createForegroundNotification()
+        //TODO grab BLEManager values and listen to them
+        BLEManager.getBLEConnectionStatus().observeForever { status ->
+            if (status) {
+                // Connected
+                startForeground(1, notification)
+            } else {
+                //Disconnected
+                bluetoothLeScanner.stopScan(leScanCallback)
+                stopForeground(true)
+                stopSelf()
+
+            }
+        }
 
         // Initializes Bluetooth adapter.
         val bluetoothManager = getSystemService(BluetoothManager::class.java)
         val bluetoothAdapter: BluetoothAdapter? = bluetoothManager?.adapter
         bluetoothLeScanner = bluetoothAdapter?.bluetoothLeScanner!!
-
-
-
-        val notification = createForegroundNotification()
-
-        startForeground(1, notification)
 
         scanLeDevice()
         return START_STICKY
@@ -41,13 +50,12 @@ class BLEScannerService : Service() {
     }
 
 
-
     // Device scan callback.
     private val leScanCallback: ScanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             super.onScanResult(callbackType, result)
 
-            if(result.device.name != null){
+            if (result.device.name != null) {
                 println(result.device.name)
                 println(result.rssi)
             }
@@ -61,8 +69,8 @@ class BLEScannerService : Service() {
         bluetoothLeScanner?.let { scanner ->
 
 
-                scanning = true
-                scanner.startScan(leScanCallback)
+            scanning = true
+            scanner.startScan(leScanCallback)
 
         }
     }
@@ -79,6 +87,7 @@ class BLEScannerService : Service() {
 
     override fun onDestroy() {
         Toast.makeText(this, "Service destroyed", Toast.LENGTH_SHORT).show();
+
     }
 
     private fun createNotificationChannel(channelId: String, channelName: String): String {
