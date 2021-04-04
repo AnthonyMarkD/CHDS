@@ -24,11 +24,8 @@ import java.util.regex.Pattern
 
 
 class MainFragment : Fragment() {
-    var bluetoothGatt: BluetoothGatt? = null
 
-    private val SELECT_DEVICE_REQUEST_CODE = 0
     private var _binding: FragmentMainBinding? = null
-    private val GATT_MAX_MTU_SIZE = 517
     private val binding get() = _binding!!
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,7 +38,6 @@ class MainFragment : Fragment() {
 
         val view = binding.root
         return view
-
 
     }
 
@@ -60,66 +56,6 @@ class MainFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-
-    private fun setUpBLE() {
-        val deviceFilter: BluetoothDeviceFilter = BluetoothDeviceFilter.Builder()
-            // Match only Bluetooth devices whose name matches the pattern.
-            .setNamePattern(Pattern.compile("CHDS"))
-            .build()
-
-        val pairingRequest: AssociationRequest = AssociationRequest.Builder()
-            // Find only devices that match this request filter.
-            .addDeviceFilter(deviceFilter)
-            // Stop scanning as soon as one device matching the filter is found.
-            .setSingleDevice(false)
-            .build()
-        val deviceManager =
-            requireContext().getSystemService(Context.COMPANION_DEVICE_SERVICE) as CompanionDeviceManager
-
-
-        deviceManager.associate(
-            pairingRequest,
-            object : CompanionDeviceManager.Callback() {
-                // Called when a device is found. Launch the IntentSender so the user
-                // can select the device they want to pair with.
-                override fun onDeviceFound(chooserLauncher: IntentSender) {
-                    println("Do we reach")
-                    startIntentSenderForResult(
-                        chooserLauncher,
-                        SELECT_DEVICE_REQUEST_CODE, null, 0, 0, 0, null
-                    )
-                }
-
-                override fun onFailure(error: CharSequence?) {
-                    // Handle the failure.
-                }
-            }, null
-        )
-
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        println("test")
-        when (requestCode) {
-
-            SELECT_DEVICE_REQUEST_CODE -> when (resultCode) {
-
-                Activity.RESULT_OK -> {
-                    // The user chose to pair the app with a Bluetooth device.
-                    val deviceToPair: BluetoothDevice? =
-                        data?.getParcelableExtra(CompanionDeviceManager.EXTRA_DEVICE)
-                    deviceToPair?.let { device ->
-                        // Continue to interact with the paired device.
-                        BLEManager.setUpBluetoothGatt(device,requireContext().applicationContext)
-                    }
-                }
-            }
-            else -> super.onActivityResult(requestCode, resultCode, data)
-        }
-    }
-
-
-
 
 
 }

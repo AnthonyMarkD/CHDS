@@ -12,8 +12,8 @@ import android.graphics.Color
 import android.os.Handler
 import android.os.IBinder
 import android.widget.Toast
-import androidx.core.app.ActivityCompat.startActivityForResult
 import com.example.chds.R
+import com.example.chds.bluetooth.BLEManager
 
 class BLEScannerService : Service() {
     private lateinit var bluetoothLeScanner: BluetoothLeScanner
@@ -23,6 +23,11 @@ class BLEScannerService : Service() {
     // Stops scanning after 10 seconds.
     private val SCAN_PERIOD: Long = 1000000
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val bluetoothManager = getSystemService(BluetoothManager::class.java)
+        val bluetoothAdapter: BluetoothAdapter? = bluetoothManager?.adapter
+
+        bluetoothLeScanner = bluetoothAdapter?.bluetoothLeScanner!!
+
         val notification = createForegroundNotification()
         //TODO grab BLEManager values and listen to them
         BLEManager.getBLEConnectionStatus().observeForever { status ->
@@ -31,7 +36,10 @@ class BLEScannerService : Service() {
                 startForeground(1, notification)
             } else {
                 //Disconnected
+
                 bluetoothLeScanner.stopScan(leScanCallback)
+
+
                 stopForeground(true)
                 stopSelf()
 
@@ -39,9 +47,7 @@ class BLEScannerService : Service() {
         }
 
         // Initializes Bluetooth adapter.
-        val bluetoothManager = getSystemService(BluetoothManager::class.java)
-        val bluetoothAdapter: BluetoothAdapter? = bluetoothManager?.adapter
-        bluetoothLeScanner = bluetoothAdapter?.bluetoothLeScanner!!
+
 
         scanLeDevice()
         return START_STICKY

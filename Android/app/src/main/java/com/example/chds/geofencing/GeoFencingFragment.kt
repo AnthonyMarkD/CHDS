@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.chds.databinding.FragmentGeofencingBinding
 import com.example.chds.databinding.FragmentMainBinding
 
@@ -26,5 +28,12 @@ class GeoFencingFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+//        val model:  by viewModels()
+//        model.getUsers().observe(this, Observer<List<User>>{ users ->
+//            // update UI
+//        })
+
+        binding.locationsRv.adapter =
     }
 }
