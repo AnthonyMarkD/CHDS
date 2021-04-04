@@ -1,20 +1,23 @@
-package com.example.chds.data
+package com.example.chds.geofencing
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
+import com.example.chds.data.Location
+import com.example.chds.database.LocationDatabase
+import com.example.chds.database.LocationRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class LocationViewModel(application: Application): AndroidViewModel(application) {
-    private val readAllData: LiveData<List<Location>>
+    val getAllLocations: LiveData<List<Location>>
     private val repository: LocationRepository
 
     init{
         val locationDao = LocationDatabase.getDatabase(application).locationDao()
         repository = LocationRepository(locationDao)
-        readAllData = repository.readAllData
+        getAllLocations = repository.readAllData
     }
 
     fun addLocation(location: Location){

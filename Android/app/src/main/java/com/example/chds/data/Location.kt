@@ -4,10 +4,16 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "location_table")
-data class Location (
+data class Location(
+    var locationName: String,
+    var enabled: Boolean,
+    var lat: Long,
+    var lon: Long
+) {
     @PrimaryKey(autoGenerate = true)
-    val id: Int,
-    val lat: Long,
-    val lon: Long
-)
+    var id: Int = 0
+
+
+}
+
 

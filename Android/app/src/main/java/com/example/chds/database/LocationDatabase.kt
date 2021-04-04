@@ -1,9 +1,10 @@
-package com.example.chds.data
+package com.example.chds.database
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.chds.data.Location
 
 @Database(entities = [Location::class], version = 1, exportSchema = false)
 abstract class LocationDatabase: RoomDatabase() {
@@ -13,7 +14,7 @@ abstract class LocationDatabase: RoomDatabase() {
         @Volatile
         private var INSTANCE: LocationDatabase? = null
 
-        fun getDatabase(context: Context): LocationDatabase{
+        fun getDatabase(context: Context): LocationDatabase {
             val tempInstance = INSTANCE
             if (tempInstance != null){
                 return tempInstance

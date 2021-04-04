@@ -1,10 +1,11 @@
-package com.example.chds.data
+package com.example.chds.database
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.example.chds.data.Location
 
 @Dao
 interface LocationDao {
