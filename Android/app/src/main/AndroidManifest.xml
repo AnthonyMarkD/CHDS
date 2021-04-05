@@ -26,7 +26,7 @@
         </activity>
 
         <service
-            android:name=".main.BLEScannerService"
+            android:name=".bluetooth.BLEScannerService"
             android:exported="false" />
 
     </application>

@@ -47,21 +47,24 @@ class BluetoothFragment : Fragment() {
 
         BLEManager.getBLEConnectionStatus().observe(this.viewLifecycleOwner) { connectionStatus ->
             println(connectionStatus)
-            if(connectionStatus){
+            if (connectionStatus) {
                 binding.cardBleInformation.visibility = View.VISIBLE
                 binding.hapticDeviceConnectionNameTv.text = "Connected"
 
                 BLEManager.postVibration()
-            }else{
+            } else {
                 binding.cardBleInformation.visibility = View.GONE
                 binding.hapticDeviceConnectionNameTv.text = ""
             }
         }
         BLEManager.getBLEMac().observe(this.viewLifecycleOwner) { macAddress ->
-
+            binding.bleMacAddressTv.text = macAddress
         }
         BLEManager.getBLEDeviceName().observe(this.viewLifecycleOwner) { deviceName ->
-
+            binding.hapticDeviceConnectionNameTv.text = deviceName
+        }
+        binding.disconnectBLEBt.setOnClickListener {
+            BLEManager.disconnect()
         }
 
     }

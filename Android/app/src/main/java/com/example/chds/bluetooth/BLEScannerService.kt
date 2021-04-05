@@ -1,4 +1,4 @@
-package com.example.chds.main
+package com.example.chds.bluetooth
 
 import android.app.*
 import android.bluetooth.BluetoothAdapter
@@ -11,9 +11,10 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Handler
 import android.os.IBinder
+import android.util.Log
 import android.widget.Toast
 import com.example.chds.R
-import com.example.chds.bluetooth.BLEManager
+import com.example.chds.main.MainActivity
 
 class BLEScannerService : Service() {
     private lateinit var bluetoothLeScanner: BluetoothLeScanner
@@ -23,23 +24,26 @@ class BLEScannerService : Service() {
     // Stops scanning after 10 seconds.
     private val SCAN_PERIOD: Long = 1000000
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("Service:", "OnStartCalled")
         val bluetoothManager = getSystemService(BluetoothManager::class.java)
         val bluetoothAdapter: BluetoothAdapter? = bluetoothManager?.adapter
 
         bluetoothLeScanner = bluetoothAdapter?.bluetoothLeScanner!!
 
         val notification = createForegroundNotification()
+
         //TODO grab BLEManager values and listen to them
         BLEManager.getBLEConnectionStatus().observeForever { status ->
             if (status) {
                 // Connected
                 startForeground(1, notification)
+                Log.d("Service:", "connected = true")
             } else {
                 //Disconnected
 
                 bluetoothLeScanner.stopScan(leScanCallback)
 
-
+                Log.d("Service:", "connected = false")
                 stopForeground(true)
                 stopSelf()
 

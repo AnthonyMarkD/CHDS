@@ -6,9 +6,6 @@ import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.example.chds.bluetooth.BLEManager.isWritable
-import com.example.chds.bluetooth.BLEManager.isWritableWithoutResponse
-import com.example.chds.main.BLEScannerService
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -29,8 +26,11 @@ object BLEManager {
         enqueueOperation(connectToDevice(device, context.applicationContext))
     }
 
-    fun disconnect(device: BluetoothDevice) {
-        enqueueOperation(disconnectFromDevice(device))
+    fun disconnect() {
+        if (bluetoothGatt?.device != null) {
+            enqueueOperation(disconnectFromDevice(bluetoothGatt!!.device))
+        }
+
     }
 
     fun writeToDeviceCharacteristic(
@@ -39,10 +39,12 @@ object BLEManager {
         characteristicUUID: UUID,
         data: ByteArray
     ) {
+        println("do we reach this writeChar?")
         val characteristic = bluetoothGatt?.getService(serviceUUID)
             ?.getCharacteristic(characteristicUUID)
 
         if (characteristic?.isWritable() == true) {
+            println("do we reach this writeChar2?")
             enqueueOperation(writeToCharacteristic(device, characteristic, data))
         }
     }
@@ -51,19 +53,23 @@ object BLEManager {
         val characteristic = bluetoothGatt?.getService(serviceUUID)
             ?.getCharacteristic(characteristicUUID)
 
-
+        println("do we reach this readChar?")
         if (characteristic?.isReadable() == true) {
+            println("do we reach this readChar?2")
             enqueueOperation(readFromCharacteristic(device, characteristic))
         }
 
     }
 
     fun postVibration() {
+        println("Does vibration get called when connection occurs?")
         val deviceInformationService = UUID.fromString("0000180a-0000-1000-8000-00805f9b34fb")
         val deviceNameCharUUID = UUID.fromString("00002a57-0000-1000-8000-00805f9b34fb")
 
         val byteArr = byteArrayOfInts(0x56, 0x31)
         bluetoothGatt?.device?.let {
+
+            println("DO we reach this 111?")
             writeToDeviceCharacteristic(
                 it,
                 deviceInformationService,
@@ -85,12 +91,11 @@ object BLEManager {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     Log.w("BluetoothGattCallback", "Successfully connected to $deviceAddress")
 
+
                     bluetoothGatt = gatt
                     bluetoothGatt?.discoverServices() // Discoveres BLE services and characteristics
-                    bleConnectionStatus.postValue(true)
-                    bleMacAddress.postValue(gatt?.device?.address)
-                    bleDeviceName.postValue(gatt?.device?.name)
-                    bluetoothGatt?.requestMtu(GATT_MAX_MTU_SIZE) // Request Maximum Transmission unit (MTU)
+
+                    //bluetoothGatt?.requestMtu(GATT_MAX_MTU_SIZE) // Request Maximum Transmission unit (MTU)
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     bleConnectionStatus.postValue(false)
                     Log.w("BluetoothGattCallback", "Successfully disconnected from $deviceAddress")
@@ -117,9 +122,13 @@ object BLEManager {
                 printGattTable() // See implementation just above this section
                 // Consider connection setup as complete here
                 //Update Ui Here
-
-
-                getDeviceName()
+                if (pendingOperation is connectToDevice) {
+                    // Consider that the connection setup is now complete
+                    bleConnectionStatus.postValue(true)
+                    bleMacAddress.postValue(gatt.device?.address)
+                    bleDeviceName.postValue(gatt.device?.name)
+                    signalEndOfOperation()
+                }
 
 
             }
@@ -156,6 +165,10 @@ object BLEManager {
                         )
                     }
                 }
+                if (pendingOperation is readFromCharacteristic) {
+                    // Consider that the connection setup is now complete
+                    signalEndOfOperation()
+                }
             }
         }
 
@@ -186,6 +199,10 @@ object BLEManager {
                         )
                     }
                 }
+                if (pendingOperation is writeToCharacteristic) {
+                    // Consider that the connection setup is now complete
+                    signalEndOfOperation()
+                }
             }
         }
     }
@@ -213,6 +230,7 @@ object BLEManager {
     @Synchronized
     private fun enqueueOperation(operation: BLEOperationType) {
         bleOperationQueue.add(operation)
+        println("Adding in operation")
         if (pendingOperation == null) {
             doNextOperation()
         }
@@ -233,12 +251,13 @@ object BLEManager {
             return
         }
         pendingOperation = operation
-
+        print("Doing next operation")
 
 
         when (operation) {
             is connectToDevice -> {
                 with(operation) {
+
                     bleDevice.connectGatt(context, false, gattCallback)
                     Intent(
                         context.applicationContext,
@@ -246,7 +265,7 @@ object BLEManager {
                     ).also { intent ->
                         context.startForegroundService(intent) // Starting BLE scanning service in foreground so system is less likely to kill it
                     }
-                    signalEndOfOperation()
+
                 }
             }
             is disconnectFromDevice -> {
@@ -267,7 +286,7 @@ object BLEManager {
                         characteristic.writeType = writeType
                         characteristic.value = data
                         gatt.writeCharacteristic(characteristic)
-                        signalEndOfOperation()
+
                     } ?: error("Not connected to a BLE device!")
                 }
 
@@ -276,8 +295,6 @@ object BLEManager {
             is readFromCharacteristic -> {
                 with(operation) {
                     bluetoothGatt?.readCharacteristic(characteristic)
-
-                    signalEndOfOperation()
                 }
 
             }
@@ -289,7 +306,9 @@ object BLEManager {
     private fun signalEndOfOperation() {
         Log.d("ConnectionManager", "End of $pendingOperation")
         pendingOperation = null
+        println(bleOperationQueue.size)
         if (bleOperationQueue.isNotEmpty()) {
+            println(bleOperationQueue.size)
             doNextOperation()
         }
     }
