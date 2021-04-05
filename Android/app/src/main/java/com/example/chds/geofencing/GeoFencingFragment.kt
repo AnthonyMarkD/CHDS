@@ -58,7 +58,7 @@ class GeoFencingFragment : Fragment() {
 //            val location = Location("Home", false, 1L, 1L)
 //
 //            model.addLocation(location)
-            findNavController().navigate(R.id.action_geoFencingFragment_to_googleMapActivity)
+            findNavController().navigate(R.id.action_geoFencingFragment_to_googleMapFragment)
         }
         binding.backBt.setOnClickListener{
             findNavController().popBackStack()

@@ -30,8 +30,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".geofencing.GoogleMapActivity">
-        </activity>
+        
         <service
             android:name=".bluetooth.BLEScannerService"
             android:exported="false" />
