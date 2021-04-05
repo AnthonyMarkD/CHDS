@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">CHDS</string>
     <string name="app_name_full">Covid \nHaptic \nDistancing \nSystem</string>
+    <string name="map_key" translatable="false">AIzaSyCcs90ihRlaHNul3Svd96nFvjd5mcMugFs</string>
 </resources>

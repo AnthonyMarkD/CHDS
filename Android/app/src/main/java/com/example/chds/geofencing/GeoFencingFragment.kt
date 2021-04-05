@@ -10,6 +10,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.chds.R
 import com.example.chds.data.Location
 import com.example.chds.databinding.FragmentGeofencingBinding
 import com.example.chds.databinding.FragmentMainBinding
@@ -54,9 +55,10 @@ class GeoFencingFragment : Fragment() {
 
 
         binding.addLocationFAB.setOnClickListener {
-            val location = Location("Home", false, 1L, 1L)
-
-            model.addLocation(location)
+//            val location = Location("Home", false, 1L, 1L)
+//
+//            model.addLocation(location)
+            findNavController().navigate(R.id.action_geoFencingFragment_to_googleMapActivity)
         }
         binding.backBt.setOnClickListener{
             findNavController().popBackStack()
