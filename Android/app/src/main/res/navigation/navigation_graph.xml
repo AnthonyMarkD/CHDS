@@ -17,9 +17,17 @@
     <fragment
         android:id="@+id/geoFencingFragment"
         android:name="com.example.chds.geofencing.GeoFencingFragment"
-        android:label="GeoFencingFragment" />
+        android:label="GeoFencingFragment" >
+        <action
+            android:id="@+id/action_geoFencingFragment_to_googleMapActivity"
+            app:destination="@id/googleMapActivity" />
+    </fragment>
     <fragment
         android:id="@+id/bluetoothFragment"
         android:name="com.example.chds.bluetooth.BluetoothFragment"
         android:label="BluetoothFragment" />
+    <activity
+        android:id="@+id/googleMapActivity"
+        android:name="com.example.chds.geofencing.GoogleMapActivity"
+        android:label="GoogleMapActivity" />
 </navigation>
