@@ -8,6 +8,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SearchView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
+import com.example.chds.R
+import com.example.chds.data.Location
 import com.example.chds.databinding.FragmentMapBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -25,6 +29,7 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
 
+    private val model: LocationViewModel by activityViewModels()
 
 
     override fun onCreateView(
@@ -35,6 +40,8 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
         _binding = FragmentMapBinding.inflate(inflater, container, false)
 
         val view = binding.root
+
+
         return view
     }
 
@@ -81,6 +88,24 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
                 .title("Marker in Sydney")
         )
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+
+        setMapClick(mMap)
+    }
+
+    private fun setMapClick(map: GoogleMap) {
+        map.setOnMapClickListener { latLng ->
+            map.addMarker(
+                MarkerOptions()
+                    .position(latLng)
+            )
+            println(latLng.latitude)
+            val location = Location("", true, latLng.latitude.toLong(), latLng.longitude.toLong())
+            model.setCurrentLocation(location)
+            if (findNavController().currentDestination?.id != R.id.saveLocationBottomSheet) {
+                findNavController().navigate(R.id.action_googleMapFragment_to_saveLocationBottomSheet)
+            }
+        }
+
     }
 
 

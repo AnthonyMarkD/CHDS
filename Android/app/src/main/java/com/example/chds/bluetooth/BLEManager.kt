@@ -50,6 +50,8 @@ object BLEManager {
     }
 
     fun readCharacteristic(device: BluetoothDevice, serviceUUID: UUID, characteristicUUID: UUID) {
+
+
         val characteristic = bluetoothGatt?.getService(serviceUUID)
             ?.getCharacteristic(characteristicUUID)
 
@@ -67,6 +69,7 @@ object BLEManager {
         val deviceNameCharUUID = UUID.fromString("00002a57-0000-1000-8000-00805f9b34fb")
 
         val byteArr = byteArrayOfInts(0x56, 0x31)
+        //TODO:FIX THIS,postVibration called to soon
         bluetoothGatt?.device?.let {
 
             println("DO we reach this 111?")
@@ -263,13 +266,14 @@ object BLEManager {
                         context.applicationContext,
                         BLEScannerService::class.java
                     ).also { intent ->
+                        //TODO Start Service but Connected can still be false if disconnected earlier
                         context.startForegroundService(intent) // Starting BLE scanning service in foreground so system is less likely to kill it
                     }
 
                 }
             }
             is disconnectFromDevice -> {
-                bleConnectionStatus.postValue(false)
+                bleConnectionStatus.postValue(null)
                 bluetoothGatt?.close()
                 signalEndOfOperation()
             }
@@ -326,18 +330,11 @@ object BLEManager {
         return properties and property != 0
     }
 
-    private fun getDeviceName() {
-
-
-    }
 
     fun byteArrayOfInts(vararg ints: Int) = ByteArray(ints.size) { pos -> ints[pos].toByte() }
     fun ByteArray.toHexString(): String =
         joinToString(separator = " ", prefix = "0x") { String.format("%02X", it) }
 
-    fun writeCharacteristic(characteristic: BluetoothGattCharacteristic, payload: ByteArray) {
-
-    }
 
     fun getBLEConnectionStatus(): LiveData<Boolean> = bleConnectionStatus
     fun getBLEDeviceName(): LiveData<String> = bleDeviceName

@@ -3,18 +3,18 @@ package com.example.chds.bluetooth
 import android.app.*
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
-import android.bluetooth.le.BluetoothLeScanner
-import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanResult
+import android.bluetooth.le.*
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Handler
 import android.os.IBinder
+import android.os.ParcelUuid
 import android.util.Log
 import android.widget.Toast
 import com.example.chds.R
 import com.example.chds.main.MainActivity
+import java.util.*
 
 class BLEScannerService : Service() {
     private lateinit var bluetoothLeScanner: BluetoothLeScanner
@@ -31,12 +31,12 @@ class BLEScannerService : Service() {
         bluetoothLeScanner = bluetoothAdapter?.bluetoothLeScanner!!
 
         val notification = createForegroundNotification()
-
+        startForeground(1, notification)
         //TODO grab BLEManager values and listen to them
         BLEManager.getBLEConnectionStatus().observeForever { status ->
             if (status) {
                 // Connected
-                startForeground(1, notification)
+
                 Log.d("Service:", "connected = true")
             } else {
                 //Disconnected
@@ -47,6 +47,7 @@ class BLEScannerService : Service() {
                 stopForeground(true)
                 stopSelf()
 
+
             }
         }
 
@@ -54,7 +55,7 @@ class BLEScannerService : Service() {
 
 
         scanLeDevice()
-        return START_STICKY
+        return START_NOT_STICKY
 
 
     }
@@ -76,11 +77,18 @@ class BLEScannerService : Service() {
     }
 
     private fun scanLeDevice() {
+        val filter = ScanFilter.Builder()
+            .setDeviceName("CHDS").build()
+        val scanSettings = ScanSettings.Builder()
+            .setScanMode(ScanSettings.SCAN_MODE_BALANCED)
+            .build()
+        val filterList = mutableListOf<ScanFilter>()
+        filterList.add(filter)
         bluetoothLeScanner?.let { scanner ->
 
 
             scanning = true
-            scanner.startScan(leScanCallback)
+            scanner.startScan(filterList,scanSettings,leScanCallback)
 
         }
     }

@@ -29,5 +29,13 @@
     <fragment
         android:id="@+id/googleMapFragment"
         android:name="com.example.chds.geofencing.GoogleMapFragment"
-        android:label="GoogleMapFragment" />
+        android:label="GoogleMapFragment" >
+        <action
+            android:id="@+id/action_googleMapFragment_to_saveLocationBottomSheet"
+            app:destination="@id/saveLocationBottomSheet" />
+    </fragment>
+    <dialog
+        android:id="@+id/saveLocationBottomSheet"
+        android:name="com.example.chds.geofencing.SaveLocationBottomSheet"
+        android:label="SaveLocationBottomSheet" />
 </navigation>
