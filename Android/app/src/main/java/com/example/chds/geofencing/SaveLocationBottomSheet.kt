@@ -40,7 +40,7 @@ class SaveLocationBottomSheet : BottomSheetDialogFragment() {
             })
 
         binding.saveLocationBt.setOnClickListener {
-            
+            binding.locationNickNameTv.error = "Please stop being dumb"
         }
     }
 }
