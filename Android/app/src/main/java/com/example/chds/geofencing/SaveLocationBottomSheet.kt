@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.activityViewModels
 import com.example.chds.databinding.BottomsheetSaveLocationBinding
 import com.example.chds.databinding.FragmentGeofencingBinding
@@ -37,5 +38,9 @@ class SaveLocationBottomSheet : BottomSheetDialogFragment() {
                 binding.latTv.text = location.lat.toString()
                 binding.longTv.text = location.lon.toString()
             })
+
+        binding.saveLocationBt.setOnClickListener {
+            
+        }
     }
 }
