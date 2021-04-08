@@ -1,4 +1,14 @@
+// Download library from https://github.com/adafruit/Adafruit_DRV2605_Library
+
 #include <ArduinoBLE.h>
+#include <Adafruit_DRV2605.h>
+#include <Wire.h>
+ 
+Adafruit_DRV2605 drv;
+ 
+uint8_t effect = 7;
+uint32_t wait = 10;
+
 BLEService newService("180A");
 
 BLEWordCharacteristic switchChar("2A57", BLERead | BLEWrite);
@@ -9,6 +19,11 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);    // initialize serial communication
   //starts the program if we open the serial monitor.
+  
+  // Setup for motor driver
+  drv.begin();
+  drv.selectLibrary(1);
+  drv.setMode(DRV2605_MODE_INTTRIG); 
 
   pinMode(LED_BUILTIN, OUTPUT); // initialize the built-in LED pin to indicate when a central is connected
 
@@ -58,8 +73,22 @@ void loop() {
 
         if (switchChar.written()) {
 
-          Serial.println(switchChar.value(), HEX);
-
+          // Serial.println(switchChar.value(), HEX);
+          // Parse vibration signal
+          if(switchChar.value() == 0x){
+              drv.setWaveform(0, 14);  // 14 = Strong Buzz
+              drv.setWaveform(1, 0);   // end waveform
+              // play the effect!
+              drv.go();
+              delay(60 * wait * 1000);
+          }else if(switchChar.value() == ){
+              drv.setWaveform(0, 13);  // 13 = Soft buzz
+              drv.setWaveform(1, 0);   // end waveform
+              // play the effect!
+              drv.go();
+              delay(60 * wait * 1000);
+          }
+          
         }
 
       }
