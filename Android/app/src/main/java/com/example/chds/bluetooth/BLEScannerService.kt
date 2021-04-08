@@ -19,38 +19,32 @@ import java.util.*
 class BLEScannerService : Service() {
     private lateinit var bluetoothLeScanner: BluetoothLeScanner
     private var scanning = false
-    private val handler = Handler()
 
-    // Stops scanning after 10 seconds.
-    private val SCAN_PERIOD: Long = 1000000
+
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("Service:", "OnStartCalled")
         val bluetoothManager = getSystemService(BluetoothManager::class.java)
         val bluetoothAdapter: BluetoothAdapter? = bluetoothManager?.adapter
-
         bluetoothLeScanner = bluetoothAdapter?.bluetoothLeScanner!!
-
         val notification = createForegroundNotification()
         startForeground(1, notification)
-        //TODO grab BLEManager values and listen to them
         BLEManager.getBLEConnectionStatus().observeForever { status ->
-            if (status) {
+            when (status) {
                 // Connected
+                BLEConnectionStatus.NoConnection, BLEConnectionStatus.Connected -> {
+                    // Want to start a connection, let the service run
+                }
 
-                Log.d("Service:", "connected = true")
-            } else {
-                //Disconnected
-
-                bluetoothLeScanner.stopScan(leScanCallback)
-
-                Log.d("Service:", "connected = false")
-                stopForeground(true)
-                stopSelf()
-
-
+                BLEConnectionStatus.Disconnecting -> {
+                    // Kill Service
+                    bluetoothLeScanner.stopScan(leScanCallback)
+                    BLEManager.bleConnectionStatus.postValue(BLEConnectionStatus.NoConnection)
+                    stopForeground(true)
+                    stopSelf()
+                }
             }
         }
-
         // Initializes Bluetooth adapter.
 
 
@@ -88,7 +82,7 @@ class BLEScannerService : Service() {
 
 
             scanning = true
-            scanner.startScan(filterList,scanSettings,leScanCallback)
+            scanner.startScan(null, scanSettings, leScanCallback)
 
         }
     }

@@ -10,7 +10,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 object BLEManager {
-    private val bleConnectionStatus = MutableLiveData<Boolean>()
+    val bleConnectionStatus = MutableLiveData<BLEConnectionStatus>()
     private val bleDeviceName = MutableLiveData<String>()
     private val bleMacAddress = MutableLiveData<String>()
     private var bluetoothGatt: BluetoothGatt? = null
@@ -100,7 +100,7 @@ object BLEManager {
 
                     //bluetoothGatt?.requestMtu(GATT_MAX_MTU_SIZE) // Request Maximum Transmission unit (MTU)
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                    bleConnectionStatus.postValue(false)
+                    bleConnectionStatus.postValue(BLEConnectionStatus.Disconnecting)
                     Log.w("BluetoothGattCallback", "Successfully disconnected from $deviceAddress")
                     gatt?.close()
                 }
@@ -110,7 +110,7 @@ object BLEManager {
                     "BluetoothGattCallback",
                     "Error $status encountered for $deviceAddress! Disconnecting..."
                 )
-                bleConnectionStatus.postValue(false)
+                bleConnectionStatus.postValue(BLEConnectionStatus.Disconnecting)
                 gatt?.close()
 
             }
@@ -127,7 +127,7 @@ object BLEManager {
                 //Update Ui Here
                 if (pendingOperation is connectToDevice) {
                     // Consider that the connection setup is now complete
-                    bleConnectionStatus.postValue(true)
+                    bleConnectionStatus.postValue(BLEConnectionStatus.Connected)
                     bleMacAddress.postValue(gatt.device?.address)
                     bleDeviceName.postValue(gatt.device?.name)
                     signalEndOfOperation()
@@ -273,7 +273,7 @@ object BLEManager {
                 }
             }
             is disconnectFromDevice -> {
-                bleConnectionStatus.postValue(null)
+                bleConnectionStatus.postValue(BLEConnectionStatus.Disconnecting)
                 bluetoothGatt?.close()
                 signalEndOfOperation()
             }
@@ -336,7 +336,7 @@ object BLEManager {
         joinToString(separator = " ", prefix = "0x") { String.format("%02X", it) }
 
 
-    fun getBLEConnectionStatus(): LiveData<Boolean> = bleConnectionStatus
+    fun getBLEConnectionStatus(): LiveData<BLEConnectionStatus> = bleConnectionStatus
     fun getBLEDeviceName(): LiveData<String> = bleDeviceName
     fun getBLEMac(): LiveData<String> = bleMacAddress
 }
