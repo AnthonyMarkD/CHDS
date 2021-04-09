@@ -75,13 +75,13 @@ void loop() {
 
           // Serial.println(switchChar.value(), HEX);
           // Parse vibration signal
-          if(switchChar.value() == 0x){
+          if(switchChar.value() == 0x3256){
               drv.setWaveform(0, 14);  // 14 = Strong Buzz
               drv.setWaveform(1, 0);   // end waveform
               // play the effect!
               drv.go();
               delay(60 * wait * 1000);
-          }else if(switchChar.value() == ){
+          }else if(switchChar.value() == 0x3156){
               drv.setWaveform(0, 13);  // 13 = Soft buzz
               drv.setWaveform(1, 0);   // end waveform
               // play the effect!
