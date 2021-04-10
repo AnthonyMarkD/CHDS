@@ -6,17 +6,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.chds.R
-import com.example.chds.data.Location
+import com.example.chds.data.LocationBubble
 import com.example.chds.databinding.FragmentGeofencingBinding
-import com.example.chds.databinding.FragmentMainBinding
 
-class GeoFencingFragment : Fragment() {
+class GeoFencingFragment : Fragment(), LocationAdapter.OnItemClickListener {
     private var _binding: FragmentGeofencingBinding? = null
     private val binding get() = _binding!!
 
@@ -41,28 +39,35 @@ class GeoFencingFragment : Fragment() {
 //        })
         val linearLayoutManager =
             LinearLayoutManager(requireContext())
-        val adapter = LocationAdapter(emptyList())
+        val adapter = LocationAdapter(emptyList(), this)
         binding.locationsRv.adapter = adapter
         binding.locationsRv.layoutManager = linearLayoutManager
 
         val model: LocationViewModel by activityViewModels()
         model.getAllLocations.observe(
             this.viewLifecycleOwner,
-            Observer<List<Location>>
+            Observer<List<LocationBubble>>
             { locations ->
                 println()
                 adapter.setLocationList(locations)
             })
 
-
         binding.addLocationFAB.setOnClickListener {
-//            val location = Location("Home", false, 1L, 1L)
-//
-//            model.addLocation(location)
             findNavController().navigate(R.id.action_geoFencingFragment_to_googleMapFragment)
         }
         binding.backBt.setOnClickListener{
             findNavController().popBackStack()
         }
+    }
+
+    override fun onItemClick(position: Int) {
+        val model: LocationViewModel by activityViewModels()
+        val clickedLocation = model.getAllLocations.value?.get(position)
+        if (clickedLocation != null) {
+            model.setUpdatedLocation(clickedLocation)
+            model.update = true
+            findNavController().navigate(R.id.action_geoFencingFragment_to_googleMapFragment)
+        }
+
     }
 }

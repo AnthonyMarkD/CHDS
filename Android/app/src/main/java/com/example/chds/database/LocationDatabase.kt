@@ -4,9 +4,9 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.chds.data.Location
+import com.example.chds.data.LocationBubble
 
-@Database(entities = [Location::class], version = 1, exportSchema = false)
+@Database(entities = [LocationBubble::class], version = 1, exportSchema = false)
 abstract class LocationDatabase: RoomDatabase() {
     abstract fun locationDao(): LocationDao
 

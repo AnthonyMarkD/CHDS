@@ -33,9 +33,24 @@
         <action
             android:id="@+id/action_googleMapFragment_to_saveLocationBottomSheet"
             app:destination="@id/saveLocationBottomSheet" />
+        <action
+            android:id="@+id/action_googleMapFragment_to_updateLocationBottomSheet"
+            app:destination="@id/updateLocationBottomSheet" />
     </fragment>
     <dialog
         android:id="@+id/saveLocationBottomSheet"
         android:name="com.example.chds.geofencing.SaveLocationBottomSheet"
-        android:label="SaveLocationBottomSheet" />
+        android:label="SaveLocationBottomSheet" >
+        <action
+            android:id="@+id/action_saveLocationBottomSheet_to_geoFencingFragment"
+            app:destination="@id/geoFencingFragment" />
+    </dialog>
+    <dialog
+        android:id="@+id/updateLocationBottomSheet"
+        android:name="com.example.chds.geofencing.UpdateLocationBottomSheet"
+        android:label="UpdateLocationBottomSheet" >
+        <action
+            android:id="@+id/action_updateLocationBottomSheet_to_geoFencingFragment"
+            app:destination="@id/geoFencingFragment" />
+    </dialog>
 </navigation>
