@@ -6,6 +6,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.chds.bluetooth.BLEManager.toHexString
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -20,7 +21,7 @@ object BLEManager {
     private var pendingOperation: BLEOperationType? = null
     val deviceInformationService = UUID.fromString("0000180a-0000-1000-8000-00805f9b34fb")
     val deviceNameCharUUID = UUID.fromString("00002a57-0000-1000-8000-00805f9b34fb")
-
+    var lastOperation = MutableLiveData<String>()
 
     fun connect(device: BluetoothDevice, context: Context) {
         enqueueOperation(connectToDevice(device, context.applicationContext))
@@ -69,7 +70,7 @@ object BLEManager {
         val deviceNameCharUUID = UUID.fromString("00002a57-0000-1000-8000-00805f9b34fb")
 
         val byteArr = byteArrayOfInts(0x56, 0x31)
-        //TODO:FIX THIS,postVibration called to soon
+
         bluetoothGatt?.device?.let {
 
             println("DO we reach this 111?")
@@ -80,7 +81,6 @@ object BLEManager {
                 byteArr
             )
 
-            readCharacteristic(it, deviceInformationService, deviceNameCharUUID)
         }
 
     }
@@ -154,7 +154,7 @@ object BLEManager {
                     BluetoothGatt.GATT_SUCCESS -> {
                         Log.i(
                             "BluetoothGattCallback",
-                            "Read characteristic $uuid:\n${value.toHexString()}"
+                            "Read characteristic $uuid: ${value.toHexString()}"
                         )
 
                     }
@@ -170,6 +170,10 @@ object BLEManager {
                 }
                 if (pendingOperation is readFromCharacteristic) {
                     // Consider that the connection setup is now complete
+                    lastOperation.postValue(
+                        "Read characteristic $uuid: " +
+                                value.toHexString()
+                    )
                     signalEndOfOperation()
                 }
             }
@@ -185,7 +189,7 @@ object BLEManager {
                     BluetoothGatt.GATT_SUCCESS -> {
                         Log.i(
                             "BluetoothGattCallback",
-                            "Wrote to characteristic $uuid | value: ${value.toHexString()}"
+                            "Wrote to characteristic $uuid value: ${value.toHexString()}"
                         )
 
                     }
@@ -204,6 +208,9 @@ object BLEManager {
                 }
                 if (pendingOperation is writeToCharacteristic) {
                     // Consider that the connection setup is now complete
+                    lastOperation.postValue(
+                        "Wrote to characteristic $uuid value: ${value.toHexString()}"
+                    )
                     signalEndOfOperation()
                 }
             }
@@ -275,6 +282,10 @@ object BLEManager {
             is disconnectFromDevice -> {
                 bleConnectionStatus.postValue(BLEConnectionStatus.Disconnecting)
                 bluetoothGatt?.close()
+                bleDeviceName.postValue("")
+                bleMacAddress.postValue("")
+                lastOperation.postValue("")
+
                 signalEndOfOperation()
             }
             is writeToCharacteristic -> {
@@ -338,5 +349,6 @@ object BLEManager {
 
     fun getBLEConnectionStatus(): LiveData<BLEConnectionStatus> = bleConnectionStatus
     fun getBLEDeviceName(): LiveData<String> = bleDeviceName
+    fun getBLELastOperation(): LiveData<String> = lastOperation
     fun getBLEMac(): LiveData<String> = bleMacAddress
 }

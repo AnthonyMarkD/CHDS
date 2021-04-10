@@ -9,13 +9,20 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.GridLayout
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
+import com.example.chds.R
 import com.example.chds.databinding.FragmentBluetoothBinding
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import java.util.regex.Pattern
 
 class BluetoothFragment : Fragment() {
@@ -50,28 +57,69 @@ class BluetoothFragment : Fragment() {
             when (connectionStatus) {
 
                 BLEConnectionStatus.Connected -> {
-                    binding.cardBleInformation.visibility = View.VISIBLE
-                    binding.hapticDeviceConnectionNameTv.text = "Connected"
-
+                    binding.hapticDeviceConnectionNameTv.visibility = View.VISIBLE
+                    binding.bleMacAddressTv.visibility = View.VISIBLE
+                    binding.lastCommandTv.visibility = View.VISIBLE
+                    binding.disconnectBLEBt.visibility = View.VISIBLE
+                    binding.searchHapticDevicesBt.visibility = View.GONE
                     BLEManager.postVibration()
                 }
                 BLEConnectionStatus.NoConnection, BLEConnectionStatus.Disconnecting -> {
-                    binding.cardBleInformation.visibility = View.GONE
+                    binding.disconnectBLEBt.visibility = View.GONE
+                    binding.lastCommandTv.visibility = View.GONE
+                    binding.hapticDeviceConnectionNameTv.visibility = View.GONE
+                    binding.bleMacAddressTv.visibility = View.GONE
                     binding.hapticDeviceConnectionNameTv.text = ""
+                    binding.searchHapticDevicesBt.visibility = View.VISIBLE
                 }
             }
 
         }
         BLEManager.getBLEMac().observe(this.viewLifecycleOwner) { macAddress ->
-            binding.bleMacAddressTv.text = macAddress
+            animateText(
+                binding.bleMacAddressTv,
+                getString(R.string.ble_connected_mac_address),
+                macAddress, 400L
+            )
+
         }
         BLEManager.getBLEDeviceName().observe(this.viewLifecycleOwner) { deviceName ->
-            binding.hapticDeviceConnectionNameTv.text = deviceName
+            animateText(
+                binding.hapticDeviceConnectionNameTv,
+                getString(R.string.ble_connected_device_name), deviceName, 500L
+            )
+        }
+        BLEManager.getBLELastOperation().observe(this.viewLifecycleOwner) { lastOperation ->
+            animateText(
+                binding.lastCommandTv,
+                getString(R.string.last_ble_command),
+                lastOperation, 100L
+            )
         }
         binding.disconnectBLEBt.setOnClickListener {
             BLEManager.disconnect()
         }
 
+    }
+
+
+    private fun animateText(
+        view: TextView,
+        baseString: String,
+        stringToAdd: String,
+        speedToWrite: Long
+    ) {
+        var index = baseString.length
+        val combinedString = baseString + stringToAdd
+        Handler(Looper.getMainLooper()).postDelayed(object : Runnable {
+            override fun run() {
+                view.text = combinedString.subSequence(0, index++)
+                if (index <= combinedString.length) {
+                    Handler(Looper.getMainLooper()).postDelayed(this, speedToWrite)
+                }
+
+            }
+        }, 1000)
     }
 
     private fun setUpBLE() {

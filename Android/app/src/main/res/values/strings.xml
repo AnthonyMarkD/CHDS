@@ -2,4 +2,8 @@
     <string name="app_name">CHDS</string>
     <string name="app_name_full">Covid \nHaptic \nDistancing \nSystem</string>
     <string name="map_key" translatable="false">AIzaSyCcs90ihRlaHNul3Svd96nFvjd5mcMugFs</string>
+    <string name="not_connected_ble">Not connected to a device</string>
+    <string name="last_ble_command">Last command sent:\n</string>
+    <string name="ble_connected_mac_address">Mac address:\n</string>
+    <string name="ble_connected_device_name">Connected to:\n</string>
 </resources>

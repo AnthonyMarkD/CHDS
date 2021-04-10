@@ -7,7 +7,6 @@ import android.bluetooth.le.*
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.os.Handler
 import android.os.IBinder
 import android.os.ParcelUuid
 import android.util.Log
@@ -15,11 +14,11 @@ import android.widget.Toast
 import com.example.chds.R
 import com.example.chds.main.MainActivity
 import java.util.*
+import kotlin.math.pow
 
 class BLEScannerService : Service() {
     private lateinit var bluetoothLeScanner: BluetoothLeScanner
     private var scanning = false
-
 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -60,10 +59,10 @@ class BLEScannerService : Service() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             super.onScanResult(callbackType, result)
 
-            if (result.device.name != null) {
-                println(result.device.name)
-                println(result.rssi)
-            }
+            println(result.rssi)
+            println(calculateRSSIDistance(result.rssi.toDouble()))
+            println(result.scanRecord?.serviceUuids)
+            println(result.device.name)
 
 //            leDeviceListAdapter.addDevice(result.device)
 //            leDeviceListAdapter.notifyDataSetChanged()
@@ -72,17 +71,22 @@ class BLEScannerService : Service() {
 
     private fun scanLeDevice() {
         val filter = ScanFilter.Builder()
-            .setDeviceName("CHDS").build()
+            .setServiceUuid(ParcelUuid.fromString("0000180a-0000-1000-8000-00805f9b34fb"))
+            .build()
+        val filter2 = ScanFilter.Builder()
+            .setDeviceName("CHDS")
+            .build()
         val scanSettings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_BALANCED)
             .build()
         val filterList = mutableListOf<ScanFilter>()
         filterList.add(filter)
-        bluetoothLeScanner?.let { scanner ->
+        filterList.add(filter2)
+        bluetoothLeScanner.let { scanner ->
 
 
             scanning = true
-            scanner.startScan(null, scanSettings, leScanCallback)
+            scanner.startScan(filterList, scanSettings, leScanCallback)
 
         }
     }
@@ -98,14 +102,14 @@ class BLEScannerService : Service() {
     }
 
     override fun onDestroy() {
-        Toast.makeText(this, "Service destroyed", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "Service destroyed", Toast.LENGTH_SHORT).show();
 
     }
 
     private fun createNotificationChannel(channelId: String, channelName: String): String {
         val chan = NotificationChannel(
             channelId,
-            channelName, NotificationManager.IMPORTANCE_LOW
+            channelName, NotificationManager.IMPORTANCE_HIGH
         )
         chan.lightColor = Color.BLUE
         chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
@@ -130,5 +134,13 @@ class BLEScannerService : Service() {
             .setContentIntent(pendingIntent)
             .setTicker("BLE scanning is now in the foreground") //Used by accessibility services to create an audible announcement of notification's purpose.
             .build()
+    }
+
+    private fun calculateRSSIDistance(RSSIMeasurement: Double): Double {
+        val A =
+            -62.0 // RSSI value with Samsung Galaxy S20 Plus as testing device at a distance of 1m from MKR WIFI 1010 chip.
+        val n = 2.0 // path loss index in specific enviroment
+        println(((A - RSSIMeasurement) / (10 * n)))
+        return 10.00.pow((((A - RSSIMeasurement) / (10 * n))))
     }
 }

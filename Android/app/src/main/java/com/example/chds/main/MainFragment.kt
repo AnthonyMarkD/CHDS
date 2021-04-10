@@ -16,8 +16,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import com.example.chds.R
+import com.example.chds.bluetooth.BLEManager
 import com.example.chds.databinding.FragmentMainBinding
 import java.util.*
 import java.util.regex.Pattern
@@ -43,6 +45,14 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         // view created
+        BLEManager.getBLEDeviceName().observe(this.viewLifecycleOwner) { deviceName ->
+            if(deviceName != ""){
+                binding.hapticDeviceConnectionStatusTv.text = "Connected to ${deviceName}"
+            }else{
+                binding.hapticDeviceConnectionStatusTv.text = getString(R.string.not_connected_ble)
+            }
+
+        }
         binding.cardBle.setOnClickListener {
             // Connect to BLE
             findNavController().navigate(R.id.action_mainFragment_to_bluetoothFragment)
@@ -50,6 +60,7 @@ class MainFragment : Fragment() {
         binding.cardGeofence.setOnClickListener {
             findNavController().navigate(R.id.action_mainFragment_to_geoFencingFragment)
         }
+
     }
 
     override fun onDestroyView() {
