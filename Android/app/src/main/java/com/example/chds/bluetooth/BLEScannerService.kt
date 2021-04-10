@@ -14,12 +14,18 @@ import android.widget.Toast
 import com.example.chds.R
 import com.example.chds.main.MainActivity
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.pow
+import kotlin.math.sqrt
 
 class BLEScannerService : Service() {
     private lateinit var bluetoothLeScanner: BluetoothLeScanner
     private var scanning = false
-
+    private var distances = ArrayList<Double>()
+    private val period = 5
+    private val numStd = 1
+    private var movingAverage: Double = 0.0
+    private var movingVariance: Double = 0.0
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("Service:", "OnStartCalled")
@@ -58,6 +64,64 @@ class BLEScannerService : Service() {
     private val leScanCallback: ScanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             super.onScanResult(callbackType, result)
+
+            val point = result.rssi.toDouble()
+            // keep these line below
+            val n = distances.size
+            distances.add(point)
+
+            when {
+                n == 0 -> {
+                    // initial value
+                    movingAverage = distances[0]
+                    movingVariance = 0.0
+                }
+                n < period -> {
+                    // filling of the buffer
+                    var sumP = 0.0
+                    for (i in 0..n) {
+                        sumP = distances[i]
+                    }
+
+                    movingAverage = sumP / (n + 1)
+
+                    var sumPa2 = 0.0
+                    for (i in 0..n) {
+                        sumPa2 += (distances[i] - movingAverage) * (distances[i] - movingAverage)
+                    }
+
+                    movingVariance = sumPa2 / (n + 1)
+                }
+                else -> {
+                    // actual calculation for when n > PERIOD
+                    val deltaA = (point - distances[n - period]) / period
+                    movingAverage += deltaA
+                    movingAverage += deltaA * (deltaA + point + distances[n - period] - 2 * movingAverage)
+                }
+            }
+
+
+            // Check if it's out of range
+            val stdDev = sqrt(movingVariance);
+            val rssi = when {
+                point > (movingAverage + numStd * stdDev) -> {
+                    // It's an outlier, above a standard deviation
+                    movingAverage + numStd * stdDev
+                }
+                point < (movingAverage - numStd * stdDev) -> {
+                    // It's an outlier, below a standard deviation
+                    movingAverage - numStd * stdDev
+                }
+                else -> {
+                    // It's a reasonable measurement
+                    // Replace the line below
+                    point
+                }
+            }
+            val distance = calculateRSSIDistance(rssi)
+
+
+            //TODO Distance vibration check
 
             println(result.rssi)
             println(calculateRSSIDistance(result.rssi.toDouble()))

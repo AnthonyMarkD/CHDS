@@ -61,12 +61,16 @@ class BluetoothFragment : Fragment() {
                     binding.bleMacAddressTv.visibility = View.VISIBLE
                     binding.lastCommandTv.visibility = View.VISIBLE
                     binding.disconnectBLEBt.visibility = View.VISIBLE
+                    binding.statusDescription.visibility = View.GONE
+                    binding.bleConnectionLottie.visibility = View.GONE
                     binding.searchHapticDevicesBt.visibility = View.GONE
                     BLEManager.postVibration()
                 }
                 BLEConnectionStatus.NoConnection, BLEConnectionStatus.Disconnecting -> {
                     binding.disconnectBLEBt.visibility = View.GONE
                     binding.lastCommandTv.visibility = View.GONE
+                    binding.bleConnectionLottie.visibility = View.VISIBLE
+                    binding.statusDescription.visibility = View.VISIBLE
                     binding.hapticDeviceConnectionNameTv.visibility = View.GONE
                     binding.bleMacAddressTv.visibility = View.GONE
                     binding.hapticDeviceConnectionNameTv.text = ""
