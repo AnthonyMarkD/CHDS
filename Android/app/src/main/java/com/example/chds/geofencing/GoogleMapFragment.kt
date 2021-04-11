@@ -43,11 +43,7 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
     private val model: LocationViewModel by activityViewModels()
 
     private val PERMISSION_ID = 1010
-    var curlocation: Location = Location("Edmonton")
-        get() = field
-        set(location: Location){
-            field = location
-        }
+
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             val lastLocation: Location = locationResult.lastLocation
@@ -87,11 +83,23 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
                     val latLng = LatLng(curAddress.latitude, curAddress.longitude)
                     mMap.addMarker(MarkerOptions().position(latLng).title(address))
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15F))
-
-                    val location = LocationBubble("", true, latLng.latitude, latLng.longitude, 10.0)
-                    model.setCurrentLocation(location)
-                    if (findNavController().currentDestination?.id != R.id.saveLocationBottomSheet) {
-                        findNavController().navigate(R.id.action_googleMapFragment_to_saveLocationBottomSheet)
+                    if (model.update){
+                        val locationBubble = model.updatedLocation.value
+                        if (locationBubble != null) {
+                            locationBubble.lat = latLng.latitude
+                            locationBubble.lon = latLng.longitude
+                            model.setUpdatedLocation(locationBubble)
+                        }
+                        if (findNavController().currentDestination?.id != R.id.updateLocationBottomSheet) {
+                            findNavController().navigate(R.id.action_googleMapFragment_to_updateLocationBottomSheet)
+                        }
+                    }
+                    else{
+                        val location = LocationBubble("", true, latLng.latitude, latLng.longitude, 10.0)
+                        model.setCurrentLocation(location)
+                        if (findNavController().currentDestination?.id != R.id.saveLocationBottomSheet) {
+                            findNavController().navigate(R.id.action_googleMapFragment_to_saveLocationBottomSheet)
+                        }
                     }
                 }
                 return false
@@ -109,6 +117,7 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
         mMap = googleMap
         // Add a marker in Sydney and move the camera
         if (model.update){
+            setMapLongClick(mMap)
             val locationBubble = model.updatedLocation.value
             if (locationBubble != null){
                 val latLng = LatLng(locationBubble.lat, locationBubble.lon)
@@ -130,18 +139,39 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun setMapLongClick(map: GoogleMap) {
-        map.setOnMapLongClickListener { latLng ->
-            map.addMarker(
-                MarkerOptions()
-                    .position(latLng)
-            )
-            println(latLng.latitude)
-            val location = LocationBubble("", true, latLng.latitude, latLng.longitude, 10.0)
-            model.setCurrentLocation(location)
-            if (findNavController().currentDestination?.id != R.id.saveLocationBottomSheet) {
-                findNavController().navigate(R.id.action_googleMapFragment_to_saveLocationBottomSheet)
+        if(model.update){
+            map.setOnMapLongClickListener { latLng ->
+                map.addMarker(
+                    MarkerOptions()
+                        .position(latLng)
+                )
+                println(latLng.latitude)
+                val locationBubble = model.updatedLocation.value
+                if (locationBubble != null){
+                    locationBubble.lat = latLng.latitude
+                    locationBubble.lon = latLng.longitude
+                    model.setUpdatedLocation(locationBubble)
+                }
+                if (findNavController().currentDestination?.id != R.id.updateLocationBottomSheet) {
+                    findNavController().navigate(R.id.action_googleMapFragment_to_updateLocationBottomSheet)
+                }
             }
         }
+        else{
+            map.setOnMapLongClickListener { latLng ->
+                map.addMarker(
+                    MarkerOptions()
+                        .position(latLng)
+                )
+                println(latLng.latitude)
+                val location = LocationBubble("", true, latLng.latitude, latLng.longitude, 10.0)
+                model.setCurrentLocation(location)
+                if (findNavController().currentDestination?.id != R.id.saveLocationBottomSheet) {
+                    findNavController().navigate(R.id.action_googleMapFragment_to_saveLocationBottomSheet)
+                }
+            }
+        }
+
     }
 
 

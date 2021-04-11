@@ -4,6 +4,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import android.widget.CompoundButton
+import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.chds.R
@@ -12,7 +14,8 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 
 class LocationAdapter(
     private var locationsList: List<LocationBubble>,
-    private val listener: OnItemClickListener) :
+    private val listener: OnItemClickListener,
+    private val btnListener: CompoundButton.OnCheckedChangeListener) :
     RecyclerView.Adapter<LocationAdapter.ViewHolder>() {
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view), View.OnClickListener {
         val locationName: TextView = view.findViewById(R.id.locationNameTv)
@@ -30,6 +33,9 @@ class LocationAdapter(
                 listener.onItemClick(position)
             }
         }
+
+
+
     }
 
 
