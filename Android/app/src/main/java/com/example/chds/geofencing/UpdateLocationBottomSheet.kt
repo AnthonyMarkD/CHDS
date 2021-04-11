@@ -58,7 +58,7 @@ class UpdateLocationBottomSheet : BottomSheetDialogFragment() {
                         model.updateLocation(locationBubble)
                         if (findNavController().currentDestination?.id != R.id.geoFencingFragment) {
                             model.update = false
-                            findNavController().navigate(R.id.action_saveLocationBottomSheet_to_geoFencingFragment)
+                            findNavController().navigate(R.id.action_updateLocationBottomSheet_to_geoFencingFragment)
                         }
                     } else {
                         binding.radTv.error = "Please enter a radius for geo-fencing in meter"
@@ -68,6 +68,17 @@ class UpdateLocationBottomSheet : BottomSheetDialogFragment() {
 
             } else {
                 binding.locationNickNameTv.error = "Please enter a location name"
+            }
+        }
+
+        binding.deleteLocationBt.setOnClickListener {
+            var locationBubble = model.updatedLocation.value
+            if (locationBubble != null) {
+                model.deleteLocation(locationBubble)
+                if (findNavController().currentDestination?.id != R.id.geoFencingFragment) {
+                    model.update = false
+                    findNavController().navigate(R.id.action_updateLocationBottomSheet_to_geoFencingFragment)
+                }
             }
         }
     }

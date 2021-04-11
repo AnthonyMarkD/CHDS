@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CompoundButton
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.chds.R
 import com.example.chds.data.LocationBubble
 import com.example.chds.databinding.FragmentGeofencingBinding
+import com.google.android.material.switchmaterial.SwitchMaterial
 
 class GeoFencingFragment : Fragment(), LocationAdapter.OnItemClickListener {
     private var _binding: FragmentGeofencingBinding? = null
@@ -58,6 +60,11 @@ class GeoFencingFragment : Fragment(), LocationAdapter.OnItemClickListener {
         binding.backBt.setOnClickListener{
             findNavController().popBackStack()
         }
+
+//        val enabled: SwitchMaterial = view.findViewById(R.id.switchEnabled)
+//        enabled.setOnClickListener{
+//
+//        }
     }
 
     override fun onItemClick(position: Int) {
