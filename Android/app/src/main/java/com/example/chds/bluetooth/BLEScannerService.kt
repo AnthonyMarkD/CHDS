@@ -1,22 +1,34 @@
 package com.example.chds.bluetooth
 
+import android.Manifest
 import android.app.*
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.*
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
+import android.location.Location
+import android.location.LocationManager
 import android.os.IBinder
 import android.os.ParcelUuid
 import android.util.Log
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.app.ActivityCompat.requestPermissions
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.fragment.app.activityViewModels
 import com.example.chds.R
+import com.example.chds.database.LocationDatabase
+import com.example.chds.database.LocationRepository
+import com.example.chds.geofencing.LocationViewModel
 import com.example.chds.main.MainActivity
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.math.pow
-import kotlin.math.sqrt
+import kotlin.math.*
 
 class BLEScannerService : Service() {
     private lateinit var bluetoothLeScanner: BluetoothLeScanner
@@ -26,6 +38,11 @@ class BLEScannerService : Service() {
     private val numStd = 1
     private var movingAverage: Double = 0.0
     private var movingVariance: Double = 0.0
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private val PERMISSION_ID = 1010
+    private val locationDao = LocationDatabase.getDatabase(application).locationDao()
+    private val repository = LocationRepository(locationDao)
+
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("Service:", "OnStartCalled")
@@ -122,6 +139,12 @@ class BLEScannerService : Service() {
 
 
             //TODO Distance vibration check
+            if (checkGeofeningEnabled()){
+
+            }
+            else{
+
+            }
 
             println(result.rssi)
             println(calculateRSSIDistance(result.rssi.toDouble()))
@@ -157,6 +180,8 @@ class BLEScannerService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -206,5 +231,55 @@ class BLEScannerService : Service() {
         val n = 2.0 // path loss index in specific enviroment
         println(((A - RSSIMeasurement) / (10 * n)))
         return 10.00.pow((((A - RSSIMeasurement) / (10 * n))))
+    }
+
+    private fun checkGeofeningEnabled(): Boolean{
+        var enabled = false
+
+        val locationBubbleList = repository.readAllData.value
+        if (ActivityCompat.checkSelfPermission(
+                applicationContext,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                applicationContext,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return false
+        }
+        if (locationBubbleList != null) {
+            fusedLocationClient.lastLocation
+                .addOnSuccessListener { location : Location? ->
+                    for (locationBubble in locationBubbleList){
+                        if (locationBubble.enabled && location != null){
+                            var dist = calDistance(location.latitude, locationBubble.lat, location.longitude, locationBubble.lon)
+                            if (dist <= locationBubble.radius){
+                                enabled = true
+                                break
+                            }
+                        }
+                    }
+                }
+        }
+
+        return enabled
+    }
+
+
+    private fun deg2rad(deg: Double): Double{
+        return deg * Math.PI / 180.0
+    }
+
+    private fun rad2deg(rad: Double): Double{
+        return rad * 180.0 / Math.PI
+    }
+
+    private fun calDistance(lat1:Double, lat2:Double, lon1:Double, lon2:Double): Double{
+        var theta = lon1 - lon2
+        var dist = sin(deg2rad(lat1)) * sin(deg2rad(lat2)) + cos(deg2rad(lat1)) * cos(deg2rad(lat2)) * cos(deg2rad(theta))
+        dist = acos(dist)
+        dist = rad2deg(dist)
+        dist = dist * 60 * 1.1515
+        return dist
     }
 }
