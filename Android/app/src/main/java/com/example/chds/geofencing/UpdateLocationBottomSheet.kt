@@ -54,7 +54,7 @@ class UpdateLocationBottomSheet : BottomSheetDialogFragment() {
                     locationBubble.locationName = binding.locationNickNameTv.text.toString()
                     if (binding.radTv.text.toString() != "") {
                         locationBubble.radius = binding.radTv.text.toString().toDouble()
-                      
+
                         model.updateLocation(locationBubble)
                         if (findNavController().currentDestination?.id != R.id.geoFencingFragment) {
                             model.update = false

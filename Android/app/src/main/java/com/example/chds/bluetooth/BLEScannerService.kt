@@ -122,8 +122,6 @@ class BLEScannerService : Service() {
 
 
             //TODO Distance vibration check
-
-            println(result.rssi)
             println(calculateRSSIDistance(result.rssi.toDouble()))
             println(result.scanRecord?.serviceUuids)
             println(result.device.name)

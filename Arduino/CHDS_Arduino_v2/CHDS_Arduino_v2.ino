@@ -80,13 +80,13 @@ void loop() {
               drv.setWaveform(1, 0);   // end waveform
               // play the effect!
               drv.go();
-              delay(60 * wait * 1000);
+             
           }else if(switchChar.value() == 0x3156){
               drv.setWaveform(0, 13);  // 13 = Soft buzz
               drv.setWaveform(1, 0);   // end waveform
               // play the effect!
               drv.go();
-              delay(60 * wait * 1000);
+             
           }
           
         }
