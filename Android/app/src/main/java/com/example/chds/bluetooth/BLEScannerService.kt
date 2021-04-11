@@ -10,23 +10,19 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
-import android.location.LocationManager
 import android.os.IBinder
 import android.os.ParcelUuid
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityCompat.requestPermissions
-import androidx.core.content.ContentProviderCompat.requireContext
-import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import com.example.chds.R
+import com.example.chds.data.LocationBubble
+import com.example.chds.database.LocationDao
 import com.example.chds.database.LocationDatabase
 import com.example.chds.database.LocationRepository
-import com.example.chds.geofencing.LocationViewModel
 import com.example.chds.main.MainActivity
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.*
 
@@ -40,9 +36,12 @@ class BLEScannerService : Service() {
     private var movingVariance: Double = 0.0
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val PERMISSION_ID = 1010
-    private val locationDao = LocationDatabase.getDatabase(application).locationDao()
-    private val repository = LocationRepository(locationDao)
 
+    private lateinit var locationDao: LocationDao
+    private lateinit var repository: LocationRepository
+
+    private val vibrationSmall = BLEManager.byteArrayOfInts(0x56, 0x31)
+    private val vibrationBig = BLEManager.byteArrayOfInts(0x56, 0x32)
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("Service:", "OnStartCalled")
@@ -82,7 +81,8 @@ class BLEScannerService : Service() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             super.onScanResult(callbackType, result)
 
-            val point = result.rssi.toDouble()
+            val point = calculateRSSIDistance(result.rssi.toDouble())
+            println(result.rssi)
             // keep these line below
             val n = distances.size
             distances.add(point)
@@ -97,7 +97,7 @@ class BLEScannerService : Service() {
                     // filling of the buffer
                     var sumP = 0.0
                     for (i in 0..n) {
-                        sumP = distances[i]
+                        sumP += distances[i]
                     }
 
                     movingAverage = sumP / (n + 1)
@@ -113,14 +113,16 @@ class BLEScannerService : Service() {
                     // actual calculation for when n > PERIOD
                     val deltaA = (point - distances[n - period]) / period
                     movingAverage += deltaA
-                    movingAverage += deltaA * (deltaA + point + distances[n - period] - 2 * movingAverage)
+                    movingVariance += deltaA * (deltaA + point + distances[n - period] - 2 * movingAverage)
                 }
             }
-
+            println("Moving Average: $movingAverage")
 
             // Check if it's out of range
             val stdDev = sqrt(movingVariance);
-            val rssi = when {
+            println("Standard Deviation: $stdDev")
+            println("Unchanged Distance $point")
+            val distance = when {
                 point > (movingAverage + numStd * stdDev) -> {
                     // It's an outlier, above a standard deviation
                     movingAverage + numStd * stdDev
@@ -135,26 +137,14 @@ class BLEScannerService : Service() {
                     point
                 }
             }
-            val distance = calculateRSSIDistance(rssi)
-
+            println("Changed Distance $distance")
 
             //TODO Distance vibration check
-            if (checkGeofeningEnabled()){
-
-            }
-            else{
-
-            }
-
-            println(result.rssi)
-            println(calculateRSSIDistance(result.rssi.toDouble()))
-            println(result.scanRecord?.serviceUuids)
-            println(result.device.name)
-
-//            leDeviceListAdapter.addDevice(result.device)
-//            leDeviceListAdapter.notifyDataSetChanged()
+            checkGeofencingEnabled(distance)
         }
+
     }
+
 
     private fun scanLeDevice() {
         val filter = ScanFilter.Builder()
@@ -181,7 +171,8 @@ class BLEScannerService : Service() {
     override fun onCreate() {
         super.onCreate()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
+        locationDao = LocationDatabase.getDatabase(applicationContext).locationDao()
+        repository = LocationRepository(locationDao)
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -219,7 +210,7 @@ class BLEScannerService : Service() {
         return Notification.Builder(this, channelId)
             .setContentTitle("BLE scanning enabled")
             .setContentText("Scanning stuff")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_launcher_foreground_chds)
             .setContentIntent(pendingIntent)
             .setTicker("BLE scanning is now in the foreground") //Used by accessibility services to create an audible announcement of notification's purpose.
             .build()
@@ -228,15 +219,12 @@ class BLEScannerService : Service() {
     private fun calculateRSSIDistance(RSSIMeasurement: Double): Double {
         val A =
             -62.0 // RSSI value with Samsung Galaxy S20 Plus as testing device at a distance of 1m from MKR WIFI 1010 chip.
-        val n = 2.0 // path loss index in specific enviroment
-        println(((A - RSSIMeasurement) / (10 * n)))
+        val n = 2.0 // path loss index in specific environment
         return 10.00.pow((((A - RSSIMeasurement) / (10 * n))))
     }
 
-    private fun checkGeofeningEnabled(): Boolean{
-        var enabled = false
+    private fun checkGeofencingEnabled(distance: Double) {
 
-        val locationBubbleList = repository.readAllData.value
         if (ActivityCompat.checkSelfPermission(
                 applicationContext,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -245,41 +233,72 @@ class BLEScannerService : Service() {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            return false
+            println("Do we have permissions even????")
+
         }
-        if (locationBubbleList != null) {
-            fusedLocationClient.lastLocation
-                .addOnSuccessListener { location : Location? ->
-                    for (locationBubble in locationBubbleList){
-                        if (locationBubble.enabled && location != null){
-                            var dist = calDistance(location.latitude, locationBubble.lat, location.longitude, locationBubble.lon)
-                            if (dist <= locationBubble.radius){
-                                enabled = true
-                                break
+        repository.readAllData.observeForever { locationList ->
+
+            println("List size: ${locationList.size}")
+            if (locationList != null) {
+                fusedLocationClient.lastLocation
+                    .addOnSuccessListener { location: Location? ->
+
+                        var vibrate = true
+                        for (locationBubble in locationList) {
+                            println("Location bubble name is ${locationBubble.locationName}")
+                            if (locationBubble.enabled && location != null) {
+                                var dist = calDistance(
+                                    location.latitude,
+                                    locationBubble.lat,
+                                    location.longitude,
+                                    locationBubble.lon
+                                )
+                                println("Location calculated distance is $dist")
+                                println("Location Radius is ${locationBubble.radius}")
+                                if (dist <= locationBubble.radius) {
+                                    vibrate = false
+                                    // inside circle don't vibrate
+                                }
+                            }
+                        }
+                        if (vibrate) {
+                            if (distance in 2.0..3.0) {
+                                // Small vibration
+                                BLEManager.postVibration(vibrationSmall)
+
+                            } else if (distance in 0.0..2.0) {
+                                // Large vibration
+                                BLEManager.postVibration(vibrationBig)
                             }
                         }
                     }
-                }
+            }
         }
-
-        return enabled
     }
 
 
-    private fun deg2rad(deg: Double): Double{
+    private fun deg2rad(deg: Double): Double {
         return deg * Math.PI / 180.0
     }
 
-    private fun rad2deg(rad: Double): Double{
+    private fun rad2deg(rad: Double): Double {
         return rad * 180.0 / Math.PI
     }
 
-    private fun calDistance(lat1:Double, lat2:Double, lon1:Double, lon2:Double): Double{
+    private fun calDistance(
+        lat1: Double,
+        lat2: Double,
+        lon1: Double,
+        lon2: Double
+    ): Double {
         var theta = lon1 - lon2
-        var dist = sin(deg2rad(lat1)) * sin(deg2rad(lat2)) + cos(deg2rad(lat1)) * cos(deg2rad(lat2)) * cos(deg2rad(theta))
+        var dist =
+            sin(deg2rad(lat1)) * sin(deg2rad(lat2)) + cos(deg2rad(lat1)) * cos(deg2rad(lat2)) * cos(
+                deg2rad(theta)
+            )
         dist = acos(dist)
         dist = rad2deg(dist)
-        dist = dist * 60 * 1.1515
-        return dist
+        dist = dist * 60 * 1.1515 / 10
+        return dist * 1609.34
     }
 }

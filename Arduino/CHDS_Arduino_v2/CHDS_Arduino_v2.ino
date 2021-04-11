@@ -7,7 +7,7 @@
 Adafruit_DRV2605 drv;
  
 uint8_t effect = 7;
-uint32_t wait = 10;
+uint32_t wait = 3;
 
 BLEService newService("180A");
 
@@ -34,8 +34,8 @@ void setup() {
   }
   
  
-  BLE.setLocalName("CHDS");
-  BLE.setDeviceName("CHDS");
+  BLE.setLocalName("CHDS2");
+  BLE.setDeviceName("CHDS2");
   BLE.setAdvertisedServiceUuid("19B1Af78-E821-596E-4F6C-D10412BC1214");
    //Setting a name that will appear when scanning for bluetooth devices
   BLE.setAdvertisedService(newService);
@@ -73,20 +73,20 @@ void loop() {
 
         if (switchChar.written()) {
 
-          // Serial.println(switchChar.value(), HEX);
+           Serial.println(switchChar.value(), HEX);
           // Parse vibration signal
           if(switchChar.value() == 0x3256){
               drv.setWaveform(0, 14);  // 14 = Strong Buzz
               drv.setWaveform(1, 0);   // end waveform
               // play the effect!
               drv.go();
-             
+             // delay(60 * wait * 1000);
           }else if(switchChar.value() == 0x3156){
               drv.setWaveform(0, 13);  // 13 = Soft buzz
               drv.setWaveform(1, 0);   // end waveform
               // play the effect!
               drv.go();
-             
+             // delay(60 * wait * 1000);
           }
           
         }

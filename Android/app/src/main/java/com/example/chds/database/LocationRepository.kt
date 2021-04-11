@@ -15,4 +15,5 @@ class LocationRepository(private val locationDao: LocationDao) {
     fun deleteLocation(locationBubble: LocationBubble){
         locationDao.deleteLocation(locationBubble)
     }
+
 }

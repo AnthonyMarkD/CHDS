@@ -64,7 +64,8 @@ class BluetoothFragment : Fragment() {
                     binding.statusDescription.visibility = View.GONE
                     binding.bleConnectionLottie.visibility = View.GONE
                     binding.searchHapticDevicesBt.visibility = View.GONE
-                    BLEManager.postVibration()
+                    val byteArr = BLEManager.byteArrayOfInts(0x56, 0x31)
+                    BLEManager.postVibration(byteArr)
                 }
                 BLEConnectionStatus.NoConnection, BLEConnectionStatus.Disconnecting -> {
                     binding.disconnectBLEBt.visibility = View.GONE
@@ -80,50 +81,23 @@ class BluetoothFragment : Fragment() {
 
         }
         BLEManager.getBLEMac().observe(this.viewLifecycleOwner) { macAddress ->
-            animateText(
-                binding.bleMacAddressTv,
-                getString(R.string.ble_connected_mac_address),
-                macAddress, 400L
-            )
-
+            binding.bleMacAddressTv.text =
+                getString(R.string.ble_connected_mac_address) + macAddress
         }
         BLEManager.getBLEDeviceName().observe(this.viewLifecycleOwner) { deviceName ->
-            animateText(
-                binding.hapticDeviceConnectionNameTv,
-                getString(R.string.ble_connected_device_name), deviceName, 500L
-            )
+            binding.hapticDeviceConnectionNameTv.text =
+                getString(R.string.ble_connected_device_name) + deviceName
+
         }
         BLEManager.getBLELastOperation().observe(this.viewLifecycleOwner) { lastOperation ->
-            animateText(
-                binding.lastCommandTv,
-                getString(R.string.last_ble_command),
-                lastOperation, 100L
-            )
+
+            binding.lastCommandTv.text = getString(R.string.last_ble_command) + lastOperation
+
         }
         binding.disconnectBLEBt.setOnClickListener {
             BLEManager.disconnect()
         }
 
-    }
-
-
-    private fun animateText(
-        view: TextView,
-        baseString: String,
-        stringToAdd: String,
-        speedToWrite: Long
-    ) {
-        var index = baseString.length
-        val combinedString = baseString + stringToAdd
-        Handler(Looper.getMainLooper()).postDelayed(object : Runnable {
-            override fun run() {
-                view.text = combinedString.subSequence(0, index++)
-                if (index <= combinedString.length) {
-                    Handler(Looper.getMainLooper()).postDelayed(this, speedToWrite)
-                }
-
-            }
-        }, 1000)
     }
 
     private fun setUpBLE() {

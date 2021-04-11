@@ -59,13 +59,18 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
         _binding = FragmentMapBinding.inflate(inflater, container, false)
 
         val view = binding.root
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        fusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(requireActivity())
 
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.backBt.setOnClickListener {
+            findNavController().popBackStack()
+        }
         (binding.map).onCreate(savedInstanceState)
         binding.map.onResume()
         binding.map.getMapAsync(this)
@@ -83,7 +88,7 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
                     val latLng = LatLng(curAddress.latitude, curAddress.longitude)
                     mMap.addMarker(MarkerOptions().position(latLng).title(address))
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15F))
-                    if (model.update){
+                    if (model.update) {
                         val locationBubble = model.updatedLocation.value
                         if (locationBubble != null) {
                             locationBubble.lat = latLng.latitude
@@ -93,9 +98,9 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
                         if (findNavController().currentDestination?.id != R.id.updateLocationBottomSheet) {
                             findNavController().navigate(R.id.action_googleMapFragment_to_updateLocationBottomSheet)
                         }
-                    }
-                    else{
-                        val location = LocationBubble("", true, latLng.latitude, latLng.longitude, 10.0)
+                    } else {
+                        val location =
+                            LocationBubble("", true, latLng.latitude, latLng.longitude, 10.0)
                         model.setCurrentLocation(location)
                         if (findNavController().currentDestination?.id != R.id.saveLocationBottomSheet) {
                             findNavController().navigate(R.id.action_googleMapFragment_to_saveLocationBottomSheet)
@@ -116,10 +121,10 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         // Add a marker in Sydney and move the camera
-        if (model.update){
+        if (model.update) {
             setMapLongClick(mMap)
             val locationBubble = model.updatedLocation.value
-            if (locationBubble != null){
+            if (locationBubble != null) {
                 val latLng = LatLng(locationBubble.lat, locationBubble.lon)
                 mMap.addMarker(
                     MarkerOptions()
@@ -131,15 +136,14 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
                     findNavController().navigate(R.id.action_googleMapFragment_to_updateLocationBottomSheet)
                 }
             }
-        }
-        else{
+        } else {
             getLastLocation()
             setMapLongClick(mMap)
         }
     }
 
     private fun setMapLongClick(map: GoogleMap) {
-        if(model.update){
+        if (model.update) {
             map.setOnMapLongClickListener { latLng ->
                 map.addMarker(
                     MarkerOptions()
@@ -147,7 +151,7 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
                 )
                 println(latLng.latitude)
                 val locationBubble = model.updatedLocation.value
-                if (locationBubble != null){
+                if (locationBubble != null) {
                     locationBubble.lat = latLng.latitude
                     locationBubble.lon = latLng.longitude
                     model.setUpdatedLocation(locationBubble)
@@ -156,8 +160,7 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
                     findNavController().navigate(R.id.action_googleMapFragment_to_updateLocationBottomSheet)
                 }
             }
-        }
-        else{
+        } else {
             map.setOnMapLongClickListener { latLng ->
                 map.addMarker(
                     MarkerOptions()
@@ -177,16 +180,22 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
 
     private fun requestPermission() {
         requestPermissions(
-            arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION),
+            arrayOf(
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ),
             PERMISSION_ID
         )
     }
 
-    private fun isLocationEnabled():Boolean{
+    private fun isLocationEnabled(): Boolean {
         //this function will return to us the state of the location service
         //if the gps or the network provider is enabled then it will return true otherwise it will return false
-        var locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        var locationManager =
+            requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(
+            LocationManager.NETWORK_PROVIDER
+        )
     }
 
     override fun onRequestPermissionsResult(
@@ -194,15 +203,15 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        if(requestCode == PERMISSION_ID){
-            if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+        if (requestCode == PERMISSION_ID) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.i(TAG, "onRequestPermissionResult")
             }
         }
     }
 
-    private fun getLastLocation(){
-        if(isLocationEnabled()) {
+    private fun getLastLocation() {
+        if (isLocationEnabled()) {
             if (ActivityCompat.checkSelfPermission(
                     requireContext(),
                     Manifest.permission.ACCESS_FINE_LOCATION
@@ -231,19 +240,23 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
                     Log.e("Tag", location.latitude.toString())
                 }
             }
-        }
-        else{
-            Toast.makeText(requireContext(),"Please Turn on Your device Location",Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(
+                requireContext(),
+                "Please Turn on Your device Location",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
-    private fun newLocationData(){
-        val locationRequest =  LocationRequest()
+    private fun newLocationData() {
+        val locationRequest = LocationRequest()
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         locationRequest.interval = 0
         locationRequest.fastestInterval = 0
         locationRequest.numUpdates = 1
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        fusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(requireActivity())
         if (ActivityCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -256,11 +269,9 @@ class GoogleMapFragment : Fragment(), OnMapReadyCallback {
             return
         }
         fusedLocationProviderClient.requestLocationUpdates(
-            locationRequest,locationCallback, Looper.myLooper()
+            locationRequest, locationCallback, Looper.myLooper()
         )
     }
-
-
 
 
 }

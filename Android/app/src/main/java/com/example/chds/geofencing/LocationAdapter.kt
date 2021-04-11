@@ -15,30 +15,32 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 class LocationAdapter(
     private var locationsList: List<LocationBubble>,
     private val listener: OnItemClickListener,
-    private val btnListener: CompoundButton.OnCheckedChangeListener) :
-    RecyclerView.Adapter<LocationAdapter.ViewHolder>() {
-    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view), View.OnClickListener {
+    private val switchListener: OnItemClickListener
+) : RecyclerView.Adapter<LocationAdapter.ViewHolder>() {
+
+
+    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val locationName: TextView = view.findViewById(R.id.locationNameTv)
         val enabled: SwitchMaterial = view.findViewById(R.id.switchEnabled)
 
 
         init {
             // Define click listener for the ViewHolder's View.
-            view.setOnClickListener(this)
-        }
+            view.setOnClickListener {
 
-        override fun onClick(p0: View?) {
-            val position = adapterPosition
-            if (position != RecyclerView.NO_POSITION){
-                listener.onItemClick(position)
+
+                listener.onItemClick(adapterPosition)
+
+
+            }
+            enabled.setOnCheckedChangeListener { buttonView, isChecked ->
+
+                switchListener.onSwitchChanged(buttonView, isChecked, adapterPosition)
             }
         }
 
 
-
     }
-
-
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LocationAdapter.ViewHolder {
@@ -72,6 +74,7 @@ class LocationAdapter(
 
     interface OnItemClickListener {
         fun onItemClick(position: Int)
+        fun onSwitchChanged(buttonView: View, isChecked: Boolean, position: Int)
     }
 }
 

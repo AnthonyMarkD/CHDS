@@ -40,12 +40,12 @@ object BLEManager {
         characteristicUUID: UUID,
         data: ByteArray
     ) {
-        println("do we reach this writeChar?")
+
         val characteristic = bluetoothGatt?.getService(serviceUUID)
             ?.getCharacteristic(characteristicUUID)
 
         if (characteristic?.isWritable() == true) {
-            println("do we reach this writeChar2?")
+
             enqueueOperation(writeToCharacteristic(device, characteristic, data))
         }
     }
@@ -56,29 +56,27 @@ object BLEManager {
         val characteristic = bluetoothGatt?.getService(serviceUUID)
             ?.getCharacteristic(characteristicUUID)
 
-        println("do we reach this readChar?")
+
         if (characteristic?.isReadable() == true) {
-            println("do we reach this readChar?2")
+
             enqueueOperation(readFromCharacteristic(device, characteristic))
         }
 
     }
 
-    fun postVibration() {
-        println("Does vibration get called when connection occurs?")
+    fun postVibration(byteArray: ByteArray) {
+
         val deviceInformationService = UUID.fromString("0000180a-0000-1000-8000-00805f9b34fb")
         val deviceNameCharUUID = UUID.fromString("00002a57-0000-1000-8000-00805f9b34fb")
 
-        val byteArr = byteArrayOfInts(0x56, 0x31)
-
         bluetoothGatt?.device?.let {
 
-            println("DO we reach this 111?")
+
             writeToDeviceCharacteristic(
                 it,
                 deviceInformationService,
                 deviceNameCharUUID,
-                byteArr
+                byteArray
             )
 
         }
@@ -321,9 +319,9 @@ object BLEManager {
     private fun signalEndOfOperation() {
         Log.d("ConnectionManager", "End of $pendingOperation")
         pendingOperation = null
-        println(bleOperationQueue.size)
+
         if (bleOperationQueue.isNotEmpty()) {
-            println(bleOperationQueue.size)
+
             doNextOperation()
         }
     }

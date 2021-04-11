@@ -19,7 +19,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 class GeoFencingFragment : Fragment(), LocationAdapter.OnItemClickListener {
     private var _binding: FragmentGeofencingBinding? = null
     private val binding get() = _binding!!
-
+    private val model: LocationViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,7 +41,7 @@ class GeoFencingFragment : Fragment(), LocationAdapter.OnItemClickListener {
 //        })
         val linearLayoutManager =
             LinearLayoutManager(requireContext())
-        val adapter = LocationAdapter(emptyList(), this)
+        val adapter = LocationAdapter(emptyList(), this, this)
         binding.locationsRv.adapter = adapter
         binding.locationsRv.layoutManager = linearLayoutManager
 
@@ -57,7 +57,7 @@ class GeoFencingFragment : Fragment(), LocationAdapter.OnItemClickListener {
         binding.addLocationFAB.setOnClickListener {
             findNavController().navigate(R.id.action_geoFencingFragment_to_googleMapFragment)
         }
-        binding.backBt.setOnClickListener{
+        binding.backBt.setOnClickListener {
             findNavController().popBackStack()
         }
 
@@ -68,12 +68,21 @@ class GeoFencingFragment : Fragment(), LocationAdapter.OnItemClickListener {
     }
 
     override fun onItemClick(position: Int) {
-        val model: LocationViewModel by activityViewModels()
+
         val clickedLocation = model.getAllLocations.value?.get(position)
         if (clickedLocation != null) {
             model.setUpdatedLocation(clickedLocation)
             model.update = true
             findNavController().navigate(R.id.action_geoFencingFragment_to_googleMapFragment)
+        }
+
+    }
+
+    override fun onSwitchChanged(buttonView: View, isChecked: Boolean, position: Int) {
+        val location = model.getAllLocations.value?.get(position)
+        if (location != null) {
+            location.enabled = isChecked
+            model.updateLocation(location)
         }
 
     }

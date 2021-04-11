@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/navigation_graph"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/navigation_graph"
     app:startDestination="@id/mainFragment">
 
     <fragment
         android:id="@+id/mainFragment"
         android:name="com.example.chds.main.MainFragment"
-        android:label="MainFragment" >
+        android:label="MainFragment">
         <action
             android:id="@+id/action_mainFragment_to_bluetoothFragment"
             app:destination="@id/bluetoothFragment" />
@@ -17,7 +18,7 @@
     <fragment
         android:id="@+id/geoFencingFragment"
         android:name="com.example.chds.geofencing.GeoFencingFragment"
-        android:label="GeoFencingFragment" >
+        android:label="GeoFencingFragment">
         <action
             android:id="@+id/action_geoFencingFragment_to_googleMapFragment"
             app:destination="@id/googleMapFragment" />
@@ -29,28 +30,34 @@
     <fragment
         android:id="@+id/googleMapFragment"
         android:name="com.example.chds.geofencing.GoogleMapFragment"
-        android:label="GoogleMapFragment" >
+        android:label="GoogleMapFragment">
         <action
             android:id="@+id/action_googleMapFragment_to_saveLocationBottomSheet"
             app:destination="@id/saveLocationBottomSheet" />
         <action
             android:id="@+id/action_googleMapFragment_to_updateLocationBottomSheet"
-            app:destination="@id/updateLocationBottomSheet" />
+            app:destination="@id/updateLocationBottomSheet"
+
+            />
     </fragment>
     <dialog
         android:id="@+id/saveLocationBottomSheet"
         android:name="com.example.chds.geofencing.SaveLocationBottomSheet"
-        android:label="SaveLocationBottomSheet" >
+        android:label="SaveLocationBottomSheet">
         <action
             android:id="@+id/action_saveLocationBottomSheet_to_geoFencingFragment"
-            app:destination="@id/geoFencingFragment" />
+            app:destination="@id/geoFencingFragment"
+            app:popUpTo="@id/geoFencingFragment"
+
+            />
     </dialog>
     <dialog
         android:id="@+id/updateLocationBottomSheet"
         android:name="com.example.chds.geofencing.UpdateLocationBottomSheet"
-        android:label="UpdateLocationBottomSheet" >
+        android:label="UpdateLocationBottomSheet">
         <action
             android:id="@+id/action_updateLocationBottomSheet_to_geoFencingFragment"
-            app:destination="@id/geoFencingFragment" />
+            app:destination="@id/geoFencingFragment"
+            app:popUpTo="@id/geoFencingFragment" />
     </dialog>
 </navigation>
