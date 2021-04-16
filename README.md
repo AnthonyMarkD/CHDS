@@ -6,5 +6,7 @@ CHDS or Covid Haptic Distancing System is a system which focus on allowing users
 
 Lottie Files used:
 https://lottiefiles.com/1055-world-locations
+
 https://lottiefiles.com/867-bluetooth
+
 https://lottiefiles.com/52176-covid
