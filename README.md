@@ -12,6 +12,6 @@ https://lottiefiles.com/867-bluetooth
 
 https://lottiefiles.com/52176-covid
 
-![Screenshot_20210415-103252_CHDS(1)](https://user-images.githubusercontent.com/44737462/115901195-1c8e6400-a41e-11eb-81bb-152e80ab73bf.jpg = 250x250
+![Screenshot_20210415-103252_CHDS(1)](https://user-images.githubusercontent.com/44737462/115901195-1c8e6400-a41e-11eb-81bb-152e80ab73bf.jpg = 250x250)
 
 ![Screenshot_20210415-103250_CHDS(1)](https://user-images.githubusercontent.com/44737462/115901210-20ba8180-a41e-11eb-9dbc-ea161125595d.jpg)
