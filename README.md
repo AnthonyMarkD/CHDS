@@ -4,6 +4,8 @@ Hello and welcome to our ECE 492 Capstone Project!
 
 CHDS or Covid Haptic Distancing System is a system which focus on allowing users to maintain social distance from others through the usage of haptic feedback.
 
+A demonstration can be found at https://www.youtube.com/watch?v=We4i9l6wNcE
+
 Lottie Files used:
 
 https://lottiefiles.com/1055-world-locations
